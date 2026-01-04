@@ -1,0 +1,15 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.environment
+
+# Test cache
+.pytest_cache/
+
+# OS junk
+.DS_Store
