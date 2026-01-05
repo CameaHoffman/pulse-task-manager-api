@@ -10,13 +10,12 @@ user_repo = InMemoryUserRepository()
 def health_check():
     return {"status": "ok"}
 
-
 @app.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(payload: UserCreate):
     user = user_repo.create(email=payload.email, name=payload.name)
     return UserRead(id=user.id, email=user.email, name=user.name)
 
-@app.get("users/{id}", response_model=UserRead)
+@app.get("/users/{user_id}", response_model=UserRead)
 def get_user(user_id: int):
     user = user_repo.get(user_id)
     if not user:

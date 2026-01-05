@@ -18,5 +18,27 @@ def test_create_user():
     assert data["email"] == payload["email"]
     assert data["name"] == payload["name"]
 
+def test_get_user_by_id_returns_user():
+    payload = {
+        "email": "test@example.com",
+        "name": "Test User"
+    }
 
+    create_response = client.post("/users", json=payload)
+    assert create_response.status_code == 201
+
+    user_id = create_response.json()["id"]
+
+    get_response = client.get(f"/users/{user_id}")
+    assert get_response.status_code == 200
+
+    data = get_response.json()
+    assert data["id"] == user_id
+    assert data["email"] == payload["email"]
+    assert data["name"] == payload["name"]
+
+def test_get_user_by_id_returns_404_for_missing_user():
+    response = client.get("/users/999")
+
+    assert response.status_code == 404
 
