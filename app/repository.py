@@ -9,6 +9,12 @@ class UserRecord:
     email: str
     name: Optional[str] = None
 
+@dataclass
+class ProjectRecord:
+    id: int
+    name: str
+    description: Optional[str] = None
+
 class InMemoryUserRepository:
     """
     In-memory repository for Users. Replace later.
@@ -35,4 +41,30 @@ class InMemoryUserRepository:
     def reset(self) -> None:
         """ Convenience for tests."""
         self._users_by_id.clear()
+        self._next_id = 1
+
+class InMemoryProjectRepository:
+    """
+    In-memory repository for Projects. Replace Later."""
+
+    def __init__(self) -> None:
+        self._projects_by_id: Dict[int, ProjectRecord] = {}
+        self._next_id: int=1
+
+    def create(self, name: str, description: Optional[str] = None) -> ProjectRecord:
+        project = ProjectRecord(id=self._next_id, name=name, description=description)
+
+        self._projects_by_id[project.id] = project
+        self._next_id += 1
+        return project
+    
+    def get(self, project_id: int) -> Optional[ProjectRecord]:
+        return self._projects_by_id.get(project_id)
+
+    def list(self, limit: int = 50, offset: int = 0) -> List[ProjectRecord]:
+        projects = sorted(self._projects_by_id.values(), key=lambda p: p.id)
+        return projects[offset : offset + limit]
+    
+    def reset(self) -> None:
+        self._projects_by_id.clear()
         self._next_id = 1
