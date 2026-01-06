@@ -18,6 +18,15 @@ def test_create_user():
     assert data["email"] == payload["email"]
     assert data["name"] == payload["name"]
 
+def test_create_user_returns_422_when_email_missing():
+    payload = {
+        "name": "Test User"
+    }
+
+    response = client.post("/users", json=payload)
+
+    assert response.status_code == 422
+
 def test_get_user_by_id_returns_user():
     payload = {
         "email": "test@example.com",
