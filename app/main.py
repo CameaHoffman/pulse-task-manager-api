@@ -48,3 +48,4 @@ def get_project(project_id: int):
 def get_projects_list(limit: int=50, offset: int=0):
     projects = project_repo.list(limit=limit, offset=offset)
     return [ProjectRead(id=p.id, name=p.name, description=p.description) for p in projects]
+
