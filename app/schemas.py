@@ -24,5 +24,5 @@ class ProjectRead(BaseModel):
     description: Optional[str] = None
 
 class ProjectUpdate(BaseModel):
-    name: str
+    name: Optional[str]
     description: Optional[str] = None

@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, status
-from app.schemas import UserCreate, UserRead, ProjectCreate, ProjectRead
+from fastapi import FastAPI,HTTPException, status
+from app.schemas import UserCreate, UserRead, ProjectCreate, ProjectRead, ProjectUpdate
 from app.repository import InMemoryUserRepository, InMemoryProjectRepository
 
 app = FastAPI()
@@ -48,4 +48,20 @@ def get_project(project_id: int):
 def get_projects_list(limit: int=50, offset: int=0):
     projects = project_repo.list(limit=limit, offset=offset)
     return [ProjectRead(id=p.id, name=p.name, description=p.description) for p in projects]
+
+# ------ PROJECTS ROUTER ------
+
+@app.patch("/projects/{project_id}", response_model=ProjectRead)
+def update_project(project_id: int, update: ProjectUpdate):
+    project = project_repo.update(project_id=project_id,
+                                  name=update.name,
+                                  description=update.description)
+    
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    if update.name is None and update.description is None:
+        raise HTTPException(status_code=400, detail="No fields provided to update")
+
+    return ProjectRead(id=project.id, name=project.name, description=project.description)
 

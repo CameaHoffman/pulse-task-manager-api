@@ -65,6 +65,20 @@ class InMemoryProjectRepository:
         projects = sorted(self._projects_by_id.values(), key=lambda p: p.id)
         return projects[offset : offset + limit]
     
+    def update(self, project_id: int, name: Optional[str], description: Optional[str]) -> Optional[ProjectRecord]:
+        project = self._projects_by_id.get(project_id)
+        
+        if project is None:
+            return None
+        
+        if name is not None:
+            project.name = name
+
+        if description is not None:
+            project.description = description
+
+        return project
+
     def reset(self) -> None:
         self._projects_by_id.clear()
         self._next_id = 1
