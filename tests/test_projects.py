@@ -61,7 +61,7 @@ def test_get_project_returns_404_when_not_found():
     response = client.get("/projects/999")
     assert response.status_code == 404
 
-# ------ PATCH TESTS ------
+# ------ PATCH TESTS/UPDATE PROJECT ------
 
 def test_patch_project_name_returns_200_ok():
     payload = {"name": "Project One"}
@@ -85,3 +85,23 @@ def test_patch_project_name_returns_404_when_not_found():
     response = client.patch("/projects/999", json=payload)
     assert response.status_code == 404
 
+# ------ TEST DELETE PROJECT ------
+
+def test_delete_project_by_id_returns_204_success_no_content():
+    payload = {"name": "New Project"}
+
+    create_response = client.post("/projects", json=payload)
+    assert create_response.status_code == 201
+
+    project_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/projects/{project_id}")
+
+    assert delete_response.status_code == 204
+    
+    get_response = client.get(f"/projects/{project_id}")
+    assert get_response.status_code == 404
+
+def test_delete_project_by_id_returns_404_when_not_found():
+    response = client.delete("/projects/999")
+    assert response.status_code == 404
