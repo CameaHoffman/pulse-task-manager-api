@@ -3,6 +3,8 @@ from app.main import app
 
 client = TestClient(app)
 
+# ------ CREATE USER TESTS ------
+
 def test_create_user():
     payload = {
         "email": "test@example.com",
@@ -26,6 +28,8 @@ def test_create_user_returns_422_when_email_missing():
     response = client.post("/users", json=payload)
 
     assert response.status_code == 422
+
+# ------ GET USER TESTS ------
 
 def test_get_user_by_id_returns_user():
     payload = {
@@ -72,4 +76,26 @@ def test_get_user_list_empty():
 
     assert response.status_code == 200
     assert response.json() == []
+
+# ------ DELETE USER TESTS ------
+
+def test_delete_user_by_id_returns_204_success_no_content():
+    payload = {"email": "example@email.com",
+        "name": "New User"}
+
+    create_response = client.post("/users", json=payload)
+    assert create_response.status_code == 201
+
+    user_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/users/{user_id}")
+
+    assert delete_response.status_code == 204
+    
+    get_response = client.get(f"/users/{user_id}")
+    assert get_response.status_code == 404
+
+def test_delete_user_by_id_returns_404_when_not_found():
+    response = client.delete("/users/999")
+    assert response.status_code == 404
 
