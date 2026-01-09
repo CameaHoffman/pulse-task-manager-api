@@ -78,6 +78,16 @@ class InMemoryProjectRepository:
             project.description = description
 
         return project
+    
+    def delete(self, project_id: int):
+        project = self._projects_by_id.get(project_id)
+        
+        if project is None:
+            return False
+        
+        else:
+            self._projects_by_id.pop(project_id)
+            return True
 
     def reset(self) -> None:
         self._projects_by_id.clear()

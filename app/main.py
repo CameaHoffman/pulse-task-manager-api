@@ -49,6 +49,14 @@ def get_projects_list(limit: int=50, offset: int=0):
     projects = project_repo.list(limit=limit, offset=offset)
     return [ProjectRead(id=p.id, name=p.name, description=p.description) for p in projects]
 
+@app.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_project(project_id: int):
+    project = project_repo.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project_repo.delete(project_id)
+
 # ------ PROJECTS ROUTER ------
 
 @app.patch("/projects/{project_id}", response_model=ProjectRead)
