@@ -38,6 +38,16 @@ class InMemoryUserRepository:
         users = sorted(self._users_by_id.values(), key=lambda u: u.id)
         return users[offset : offset + limit]
     
+    def delete(self, user_id: int):
+        user = self._users_by_id.get(user_id)
+        
+        if user is None:
+            return False
+        
+        else:
+            self._users_by_id.pop(user_id)
+            return True
+    
     def reset(self) -> None:
         """ Convenience for tests."""
         self._users_by_id.clear()

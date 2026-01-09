@@ -30,6 +30,14 @@ def get_users_list(limit: int = 50, offset: int=0):
     users = user_repo.list(limit=limit, offset=offset)
     return [UserRead(id=u.id, email=u.email, name=u.name) for u in users]
 
+@app.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(user_id: int):
+    user = user_repo.get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_repo.delete(user_id)
+
 # ---------- PROJECTS ----------
 
 @app.post("/projects", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
