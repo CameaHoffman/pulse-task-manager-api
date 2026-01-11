@@ -12,6 +12,10 @@ class UserRead(BaseModel):
     email: EmailStr
     name: Optional[str] = None
 
+class UserUpdate(BaseModel):
+    email: Optional[str]
+    name: Optional[str]
+
 # ------ PROJECT SCHEMAS ------
 
 class ProjectCreate(BaseModel):
