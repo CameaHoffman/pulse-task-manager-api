@@ -99,3 +99,29 @@ def test_delete_user_by_id_returns_404_when_not_found():
     response = client.delete("/users/999")
     assert response.status_code == 404
 
+# ------ PATCH TESTS/UPDATE USER ------
+
+def test_patch_user_email_returns_200_ok():
+    payload = {"email": "example@email.com",
+               "name": "New Name"}
+
+    create_response = client.post("/users", json=payload)
+    assert create_response.status_code == 201
+
+    user_id = create_response.json()["id"]
+
+    payload_patch = {"email": "new@email.com"}
+    patch_response = client.patch(f"/users/{user_id}", json=payload_patch)
+
+    assert patch_response.status_code == 200
+
+    data = patch_response.json()
+    assert data["id"] == user_id
+    assert data["email"] == payload_patch["email"]
+
+def test_patch_user_email_returns_404_when_not_found():
+    payload = {"email": "example@email.com",
+               "name": "New Name"}
+    response = client.patch("/users/999", json=payload)
+    assert response.status_code == 404
+
