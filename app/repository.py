@@ -144,4 +144,9 @@ class InMemoryTaskRepository:
     
     def get(self, task_id: int) -> Optional[TaskRecord]:
         return self._tasks_by_id.get(task_id)
+    
+    def list_by_project(self, project_id: int, limit: int = 50, offset: int = 0) -> List[TaskRecord]:
+        tasks = [t for t in self._tasks_by_id.values() if t.project_id == project_id]
+        tasks = sorted(tasks, key=lambda t: t.id)
+        return tasks[offset : offset + limit]
 

@@ -105,8 +105,8 @@ def update_project(project_id: int, update: ProjectUpdate):
 
 @app.post("/tasks", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
 def create_task(payload: TaskCreate):
-    task = task_repo.create(title=payload.title, project_id=payload.project_id, description=payload.description, 
-                            is_done=payload.is_done)
+    task = task_repo.create(title=payload.title, project_id=payload.project_id, 
+                            description=payload.description, is_done=payload.is_done)
     
     return TaskRead(id=task.id, title=task.title, project_id=task.project_id, 
                     description=task.description, is_done=task.is_done)
@@ -116,7 +116,12 @@ def get_task(task_id: int):
     task = task_repo.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    return TaskRead(id=task.id, title=task.title, project_id=task.project_id, description=task.description, is_done=task.is_done)
+    return TaskRead(id=task.id, title=task.title, project_id=task.project_id,
+                    description=task.description, is_done=task.is_done)
     
-
+@app.get("/projects/{project_id}/tasks", response_model=list[TaskRead])
+def get_tasks_list(project_id: int, limit: int = 50, offset: int = 0):
+    tasks = task_repo.list_by_project(project_id=project_id, limit=limit, offset=offset)
+    return [TaskRead(id=t.id, title=t.title, project_id=t.project_id,
+                     description=t.description, is_done=t.is_done) for t in tasks]
 
