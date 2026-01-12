@@ -15,6 +15,14 @@ class ProjectRecord:
     name: str
     description: Optional[str] = None
 
+@dataclass
+class TaskRecord:
+    id: int
+    project_id: int
+    title: str
+    description: Optional[str] = None
+    is_done: bool = False
+    
 class InMemoryUserRepository:
     """
     In-memory repository for Users. Replace later.
@@ -116,3 +124,21 @@ class InMemoryProjectRepository:
     def reset(self) -> None:
         self._projects_by_id.clear()
         self._next_id = 1
+
+class InMemoryTaskRepository:
+    """
+    In-memory repository for Tasks. Replace Later.
+    """
+
+    def __init__(self) -> None:
+        self._tasks_by_id: Dict[int, TaskRecord] = {}
+        self._next_id: int=1
+
+    def create(self, title: str, project_id: int, description: Optional[str] = None, is_done: bool = False) -> TaskRecord:
+        task = TaskRecord(id=self._next_id, title=title, description=description, is_done=is_done, project_id=project_id)
+
+        self._tasks_by_id[task.id] = task
+        self._next_id += 1
+
+        return task
+

@@ -38,3 +38,10 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
     is_done: bool = False
     project_id: int
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    is_done: bool = False
+    project_id: int

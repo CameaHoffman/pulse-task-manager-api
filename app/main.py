@@ -1,11 +1,12 @@
 from fastapi import FastAPI,HTTPException, status
-from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate
-from app.repository import InMemoryUserRepository, InMemoryProjectRepository
+from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead
+from app.repository import InMemoryUserRepository, InMemoryProjectRepository, InMemoryTaskRepository
 
 app = FastAPI()
 
 user_repo = InMemoryUserRepository()
 project_repo = InMemoryProjectRepository()
+task_repo = InMemoryTaskRepository()
 
 @app.get("/health")
 def health_check():
@@ -99,3 +100,16 @@ def update_project(project_id: int, update: ProjectUpdate):
         raise HTTPException(status_code=404, detail="Project not found")
 
     return ProjectRead(id=project.id, name=project.name, description=project.description)
+
+# ------ TASKS ------
+
+@app.post("/tasks", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
+def create_task(payload: TaskCreate):
+    task = task_repo.create(title=payload.title, project_id=payload.project_id, description=payload.description, 
+                            is_done=payload.is_done)
+    
+    return TaskRead(id=task.id, title=task.title, project_id=task.project_id, 
+                    description=task.description, is_done=task.is_done)
+    
+
+
