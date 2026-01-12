@@ -41,9 +41,13 @@ def test_get_project_by_id_returns_200():
     assert data["name"] == payload["name"]
     assert data["description"] == payload["description"]
 
+def test_get_project_returns_404_when_not_found():
+    response = client.get("/projects/999")
+    assert response.status_code == 404
+
 # ------ GET PROJECT LIST TESTS ------
 
-def test_lists_projects_returns_projects():
+def test_get_projects_list_returns_projects():
     payload1 = {"name": "Project One"}
     payload2 = {"name": "Project Two"}
 
@@ -56,10 +60,6 @@ def test_lists_projects_returns_projects():
     data = response.json()
     assert isinstance(data, list)
     assert len(data) >= 2
-
-def test_get_project_returns_404_when_not_found():
-    response = client.get("/projects/999")
-    assert response.status_code == 404
 
 # ------ PATCH TESTS/UPDATE PROJECT ------
 
