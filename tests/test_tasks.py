@@ -71,6 +71,11 @@ def test_get_task_by_id_returns_200():
     assert data["title"] == payload["title"]
     assert data["description"] == payload["description"]
     assert data["project_id"] == project_id
-    
+
+def test_get_task_by_id_returns_404_not_found():
+    response = client.get("/tasks/999/")
+    assert response.status_code == 404
+
+# ------ GET TASKS LISTS TEST -------    
 # ------ UPDATE TASK TESTS ------
 # ------ DELETE TASK TESTS ------
