@@ -77,28 +77,6 @@ def test_get_user_list_empty():
     assert response.status_code == 200
     assert response.json() == []
 
-# ------ DELETE USER TESTS ------
-
-def test_delete_user_by_id_returns_204_success_no_content():
-    payload = {"email": "example@email.com",
-        "name": "New User"}
-
-    create_response = client.post("/users", json=payload)
-    assert create_response.status_code == 201
-
-    user_id = create_response.json()["id"]
-
-    delete_response = client.delete(f"/users/{user_id}")
-
-    assert delete_response.status_code == 204
-    
-    get_response = client.get(f"/users/{user_id}")
-    assert get_response.status_code == 404
-
-def test_delete_user_by_id_returns_404_when_not_found():
-    response = client.delete("/users/999")
-    assert response.status_code == 404
-
 # ------ PATCH TESTS/UPDATE USER ------
 
 def test_patch_user_email_returns_200_ok():
@@ -125,3 +103,24 @@ def test_patch_user_email_returns_404_when_not_found():
     response = client.patch("/users/999", json=payload)
     assert response.status_code == 404
 
+# ------ DELETE USER TESTS ------
+
+def test_delete_user_by_id_returns_204_success_no_content():
+    payload = {"email": "example@email.com",
+        "name": "New User"}
+
+    create_response = client.post("/users", json=payload)
+    assert create_response.status_code == 201
+
+    user_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/users/{user_id}")
+
+    assert delete_response.status_code == 204
+    
+    get_response = client.get(f"/users/{user_id}")
+    assert get_response.status_code == 404
+
+def test_delete_user_by_id_returns_404_when_not_found():
+    response = client.delete("/users/999")
+    assert response.status_code == 404

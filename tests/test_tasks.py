@@ -76,7 +76,7 @@ def test_get_task_by_id_returns_404_not_found():
     response = client.get("/tasks/999/")
     assert response.status_code == 404
 
-# ------ GET TASKS LISTS TEST -------   
+# ------ GET TASKS LIST TEST -------   
 
 def test_get_tasks_list_by_project_id_returns_tasks():
     payload = {"name": "Project One"}
@@ -113,6 +113,39 @@ def test_get_tasks_list_by_project_id_returns_tasks():
     assert all(t["project_id"] == project_id for t in data)
  
 # ------ UPDATE TASK TESTS ------
+
+def test_patch_task_title_returns_200_ok():
+    payload = {"name": "Project One"}
+
+    project_response = client.post("/projects", json=payload)
+
+    assert project_response.status_code == 201
+
+    project_id = project_response.json()["id"]
+    
+    task_payload = {"title": "Task One",
+               "project_id": project_id}
+
+    create_response = client.post("/tasks", json=task_payload)
+    assert create_response.status_code == 201
+
+    task_id = create_response.json()["id"]
+
+    payload_patch = {"title": "New Title"}
+    patch_response = client.patch(f"/tasks/{task_id}",
+                                  json=payload_patch)
+
+    assert patch_response.status_code == 200
+
+    data = patch_response.json()
+    assert data["id"] == task_id
+    assert data["title"] == payload_patch["title"]
+    assert data["project_id" == project_id]
+
+def test_patch_task_title_returns_404_when_not_found():
+    payload = {"title": "New Title"}
+    response = client.patch("/tasks/999", json=payload)
+    assert response.status_code == 404
 
 # ------ DELETE TASK TESTS ------
 
