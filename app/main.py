@@ -110,6 +110,13 @@ def create_task(payload: TaskCreate):
     
     return TaskRead(id=task.id, title=task.title, project_id=task.project_id, 
                     description=task.description, is_done=task.is_done)
+
+@app.get("/tasks/{task_id}", response_model=TaskRead)
+def get_task(task_id: int):
+    task = task_repo.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return TaskRead(id=task.id, title=task.title, project_id=task.project_id, description=task.description, is_done=task.is_done)
     
 
 

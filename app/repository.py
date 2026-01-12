@@ -141,4 +141,7 @@ class InMemoryTaskRepository:
         self._next_id += 1
 
         return task
+    
+    def get(self, task_id: int) -> Optional[TaskRecord]:
+        return self._tasks_by_id.get(task_id)
 
