@@ -149,4 +149,19 @@ class InMemoryTaskRepository:
         tasks = [t for t in self._tasks_by_id.values() if t.project_id == project_id]
         tasks = sorted(tasks, key=lambda t: t.id)
         return tasks[offset : offset + limit]
+    
+    def delete(self, task_id: int):
+        task = self._tasks_by_id.get(task_id)
+
+        if task is None:
+            return False
+        
+        else:
+            self._tasks_by_id.pop(task_id)
+            return True
+        
+    def reset(self) -> None:
+        self._tasks_by_id.clear()
+        self._next_id = 1
+        
 

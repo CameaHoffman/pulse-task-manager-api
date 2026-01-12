@@ -125,3 +125,11 @@ def get_tasks_list(project_id: int, limit: int = 50, offset: int = 0):
     return [TaskRead(id=t.id, title=t.title, project_id=t.project_id,
                      description=t.description, is_done=t.is_done) for t in tasks]
 
+@app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(task_id: int):
+    task = task_repo.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task_repo.delete(task_id)
+
