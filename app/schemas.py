@@ -30,3 +30,11 @@ class ProjectRead(BaseModel):
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+
+# ------ TASK SCHEMAS ------
+
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    is_done: bool = False
+    project_id: int
