@@ -115,3 +115,22 @@ def test_get_tasks_list_by_project_id_returns_tasks():
 # ------ UPDATE TASK TESTS ------
 
 # ------ DELETE TASK TESTS ------
+
+def test_delete_task_by_id_returns_204_success_no_content():
+    payload = {"name": "Project One"}
+    project_response = client.post("/projects", json=payload)
+    project_id = project_response.json()["id"]
+
+    task_payload = {"title": "Task to delete",
+                    "project_id": project_id
+                    }
+    create_response = client.post("tasks", json=task_payload)
+    task_id = create_response.json()["id"]
+
+    response = client.delete(f"/tasks/{task_id}")
+    assert response.status_code == 204
+
+def test_delete_task_by_id_returns_404_when_not_found():
+    response = client.delete("/tasks/999")
+    assert response.status_code == 404
+
