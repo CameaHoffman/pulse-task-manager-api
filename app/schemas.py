@@ -45,3 +45,9 @@ class TaskRead(BaseModel):
     description: Optional[str] = None
     is_done: bool = False
     project_id: int
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    is_done: Optional[bool] = None
+
