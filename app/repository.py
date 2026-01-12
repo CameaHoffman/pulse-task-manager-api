@@ -38,6 +38,20 @@ class InMemoryUserRepository:
         users = sorted(self._users_by_id.values(), key=lambda u: u.id)
         return users[offset : offset + limit]
     
+    def update(self, user_id: int, name: Optional[str], email: Optional[str]) -> Optional[UserRecord]:
+        user = self._users_by_id.get(user_id)
+        
+        if user is None:
+            return None
+        
+        if email is not None:
+            user.email = email
+
+        if name is not None:
+            user.name = name
+
+        return user
+    
     def delete(self, user_id: int):
         user = self._users_by_id.get(user_id)
         

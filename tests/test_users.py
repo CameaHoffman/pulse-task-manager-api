@@ -103,7 +103,7 @@ def test_delete_user_by_id_returns_404_when_not_found():
 
 def test_patch_user_email_returns_200_ok():
     payload = {"email": "example@email.com",
-               "name": "New Name"}
+               "name": "New User"}
 
     create_response = client.post("/users", json=payload)
     assert create_response.status_code == 201

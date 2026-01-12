@@ -1,5 +1,5 @@
 from fastapi import FastAPI,HTTPException, status
-from app.schemas import UserCreate, UserRead, ProjectCreate, ProjectRead, ProjectUpdate
+from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate
 from app.repository import InMemoryUserRepository, InMemoryProjectRepository
 
 app = FastAPI()
@@ -38,6 +38,24 @@ def delete_user(user_id: int):
     
     user_repo.delete(user_id)
 
+# ------ USER UPDATE PATCH ------
+
+@app.patch("/users/{user_id}", response_model=UserRead)
+def update_user(user_id: int, update: UserUpdate):
+
+    if update.name is None and update.email is None:
+        raise HTTPException(status_code=400, detail="No fields provided to update")
+    
+    user = user_repo.update(user_id=user_id,
+                            email=update.email,
+                            name=update.name,
+                            )
+    
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return UserRead(id=user.id, email=user.email, name=user.name)
+
 # ---------- PROJECTS ----------
 
 @app.post("/projects", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
@@ -65,7 +83,7 @@ def delete_project(project_id: int):
     
     project_repo.delete(project_id)
 
-# ------ PROJECTS ROUTER ------
+# ------ PROJECT UPDATE PATCH ------
 
 @app.patch("/projects/{project_id}", response_model=ProjectRead)
 def update_project(project_id: int, update: ProjectUpdate):
