@@ -87,15 +87,15 @@ def delete_project(project_id: int):
 
 @app.patch("/projects/{project_id}", response_model=ProjectRead)
 def update_project(project_id: int, update: ProjectUpdate):
+
+    if update.name is None and update.description is None:
+        raise HTTPException(status_code=400, detail="No fields provided to update")
+    
     project = project_repo.update(project_id=project_id,
                                   name=update.name,
                                   description=update.description)
     
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    
-    if update.name is None and update.description is None:
-        raise HTTPException(status_code=400, detail="No fields provided to update")
 
     return ProjectRead(id=project.id, name=project.name, description=project.description)
-
