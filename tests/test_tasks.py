@@ -165,6 +165,33 @@ def test_patch_task_is_done_returns_404_when_not_found():
     response = client.patch("/tasks/999", json={"is_done": True})
     assert response.status_code == 404
 
+def test_patch_with_multiple_fields_updates_all_changes():
+    project = client.post("/projects", json={"name": "Project One"})
+    project_id = project.json()["id"]
+
+    created = client.post("/tasks", json={"title": "Task One", "project_id": project_id})
+    task_id = created.json()["id"]
+
+    payload = {"title": "Task Update", "is_done": True}
+    patch_response = client.patch(f"/tasks/{task_id}", json=payload)
+    assert patch_response.status_code == 200
+
+    data = patch_response.json()
+    assert data["title"] == payload["title"]
+    assert data["is_done"] is True
+
+def test_patch_with_no_fields_returns_400():
+    project = client.post("/projects", json={"name": "Project One"})
+    project_id = project.json()["id"]
+
+    created = client.post("/tasks", json={"title": "Task One", "project_id": project_id})
+    task_id = created.json()["id"]
+
+    payload = {"title": None, "description": None}
+    patch_response = client.patch(f"/tasks/{task_id}", json=payload)
+
+    assert patch_response.status_code == 400
+
 # ------ DELETE TASK TESTS ------
 
 def test_delete_task_by_id_returns_204_success_no_content():
