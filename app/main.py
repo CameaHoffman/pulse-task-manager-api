@@ -1,5 +1,5 @@
 from fastapi import FastAPI,HTTPException, status
-from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead
+from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate
 from app.repository import InMemoryUserRepository, InMemoryProjectRepository, InMemoryTaskRepository
 
 app = FastAPI()
@@ -124,6 +124,35 @@ def get_tasks_list(project_id: int, limit: int = 50, offset: int = 0):
     tasks = task_repo.list_by_project(project_id=project_id, limit=limit, offset=offset)
     return [TaskRead(id=t.id, title=t.title, project_id=t.project_id,
                      description=t.description, is_done=t.is_done) for t in tasks]
+
+@app.patch("/tasks/{task_id}", response_model=TaskRead)
+def update_task(task_id: int, update: TaskUpdate):
+
+    if (
+        update.title is None
+        and update.description is None
+        and update.is_done is None
+        ):
+        raise HTTPException(status_code=400,
+                            detail="No fields provided to update")
+    
+    task = task_repo.update(
+        task_id=task_id,
+        title=update.title,
+        description=update.description,
+        is_done=update.is_done,
+        )
+    
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    return TaskRead(
+        id=task.id,
+        title=task.title,
+        project_id=task.project_id,
+        description=task.description,
+        is_done=task.is_done,
+        )
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int):

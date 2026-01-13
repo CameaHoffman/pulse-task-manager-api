@@ -134,8 +134,11 @@ class InMemoryTaskRepository:
         self._tasks_by_id: Dict[int, TaskRecord] = {}
         self._next_id: int=1
 
-    def create(self, title: str, project_id: int, description: Optional[str] = None, is_done: bool = False) -> TaskRecord:
-        task = TaskRecord(id=self._next_id, title=title, description=description, is_done=is_done, project_id=project_id)
+    def create(self, title: str, project_id: int, description: Optional[str] = None,
+               is_done: bool = False) -> TaskRecord:
+        
+        task = TaskRecord(id=self._next_id, title=title,
+                          description=description, is_done=is_done, project_id=project_id)
 
         self._tasks_by_id[task.id] = task
         self._next_id += 1
@@ -149,6 +152,24 @@ class InMemoryTaskRepository:
         tasks = [t for t in self._tasks_by_id.values() if t.project_id == project_id]
         tasks = sorted(tasks, key=lambda t: t.id)
         return tasks[offset : offset + limit]
+    
+    def update(self, task_id: int, title: Optional[str] = None, description: Optional[str] = None,
+               is_done: Optional[bool] = None) -> Optional[TaskRecord]:
+        
+        task = self._tasks_by_id.get(task_id)
+        if task is None:
+            return None
+        
+        if title is not None:
+            task.title = title
+
+        if description is not None:
+            task.description = description
+
+        if is_done is not None:
+            task.is_done = is_done
+            
+        return task
     
     def delete(self, task_id: int):
         task = self._tasks_by_id.get(task_id)

@@ -140,7 +140,7 @@ def test_patch_task_title_returns_200_ok():
     data = patch_response.json()
     assert data["id"] == task_id
     assert data["title"] == payload_patch["title"]
-    assert data["project_id" == project_id]
+    assert data["project_id"] == project_id
 
 def test_patch_task_title_returns_404_when_not_found():
     payload = {"title": "New Title"}
