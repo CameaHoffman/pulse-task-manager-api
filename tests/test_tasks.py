@@ -147,6 +147,24 @@ def test_patch_task_title_returns_404_when_not_found():
     response = client.patch("/tasks/999", json=payload)
     assert response.status_code == 404
 
+def test_patch_task_is_done_returns_200_ok():
+    project = client.post("/projects", json={"name": "Project One"})
+    project_id = project.json()["id"]
+
+    created = client.post("/tasks", json={"title": "Task One", "project_id": project_id})
+    task_id = created.json()["id"]
+
+    patch_response = client.patch(f"/tasks/{task_id}", json={"is_done": True})
+    assert patch_response.status_code == 200
+
+    data = patch_response.json()
+    assert data["id"] == task_id
+    assert data["is_done"] is True
+
+def test_patch_task_is_done_returns_404_when_not_found():
+    response = client.patch("/tasks/999", json={"is_done": True})
+    assert response.status_code == 404
+
 # ------ DELETE TASK TESTS ------
 
 def test_delete_task_by_id_returns_204_success_no_content():
