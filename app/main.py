@@ -31,16 +31,6 @@ def get_users_list(limit: int = 50, offset: int=0):
     users = user_repo.list(limit=limit, offset=offset)
     return [UserRead(id=u.id, email=u.email, name=u.name) for u in users]
 
-@app.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int):
-    user = user_repo.get(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    user_repo.delete(user_id)
-
-# ------ USER UPDATE PATCH ------
-
 @app.patch("/users/{user_id}", response_model=UserRead)
 def update_user(user_id: int, update: UserUpdate):
 
@@ -56,6 +46,14 @@ def update_user(user_id: int, update: UserUpdate):
         raise HTTPException(status_code=404, detail="User not found")
     
     return UserRead(id=user.id, email=user.email, name=user.name)
+
+@app.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(user_id: int):
+    user = user_repo.get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_repo.delete(user_id)
 
 # ---------- PROJECTS ----------
 
@@ -76,16 +74,6 @@ def get_projects_list(limit: int=50, offset: int=0):
     projects = project_repo.list(limit=limit, offset=offset)
     return [ProjectRead(id=p.id, name=p.name, description=p.description) for p in projects]
 
-@app.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(project_id: int):
-    project = project_repo.get(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    project_repo.delete(project_id)
-
-# ------ PROJECT UPDATE PATCH ------
-
 @app.patch("/projects/{project_id}", response_model=ProjectRead)
 def update_project(project_id: int, update: ProjectUpdate):
 
@@ -100,6 +88,14 @@ def update_project(project_id: int, update: ProjectUpdate):
         raise HTTPException(status_code=404, detail="Project not found")
 
     return ProjectRead(id=project.id, name=project.name, description=project.description)
+
+@app.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_project(project_id: int):
+    project = project_repo.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project_repo.delete(project_id)
 
 # ------ TASKS ------
 
