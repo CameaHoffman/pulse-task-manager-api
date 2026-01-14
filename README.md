@@ -1,16 +1,19 @@
-# FastAPI Users and Projects API
+# FastAPI Users, Projects, and Tasks API
 
 ## Description
 
-This project is a RESTful API built with FastAPI. It demonstrates test-driven development, request validation, and clean API design.
+This project is a RESTful API built with FastAPI. It demonstrates test-driven development, request validation, clean REST API design, and partial updates using PATCH.
 
 ## Features
 
-- Create, retrieve, and list Users
-- Create, retrieve, and list Projects
+- Create, retrieve, update, and list Users
+- Create, retrieve, update, and list Projects
+- Create, retrieve, update, and list Tasks
+- List tasks by project
+- Partial updates using PATCH
 - Input validation using Pydantic
-- In-memory repositories (will be replaced with a database)
-- Fully tested with pytest
+- In-memory repositories with a clean abstraction layer
+- Fully tested with pytest (98% coverage)
 
 ## Tech Stack
 
@@ -26,13 +29,17 @@ app/
     schemas.py
     repository.py
 tests/
+    conftest.py
     test_users.py
     test_projects.py
+    test_tasks.py
+    test_health.py
 
 The main application file defines the FastAPI app and routes.  
 Schemas define Pydantic request and response models.  
 The repository layer provides in-memory data storage.  
-Tests validate create, retrieve-by-id, and list behavior for both Users and Projects.
+Tests validate CRUD behavior, error handling, and partial updates for Users, Projects and Tasks.
+conftest.py provides shared pytest fixtures used to reset in-memory repositories between tests.
 
 ## API Endpoints
 
@@ -46,6 +53,14 @@ Tests validate create, retrieve-by-id, and list behavior for both Users and Proj
 - GET /projects/{project_id} – retrieve a project by ID
 - GET /projects – list projects
 
+### Tasks
+- POST /tasks – create a task
+- GET /tasks/{task_id} – retrieve a task by ID
+- GET /tasks - list tasks
+- GET /projects/{project_id}/tasks – list tasks for a project
+- PATCH /tasks/{task_id} - partially update a task
+- DELETE /tasks/{task_id} - delete a task
+
 ## Running the App
 
 1. Install dependencies:
@@ -55,7 +70,7 @@ pip install -r requirements.txt
 
 2. Start the FastAPI development server:
 ```bash
-fastapi dev main.py
+fastapi app/dev main.py
 ```
 
 Then open your browser:
@@ -73,10 +88,17 @@ All tests should pass.
 
 ## Future Improvements
 
-- Add update and delete endpoints
-- Replace in-memory repositories with a database
-- Add authentication
-- Pagination improvements
+- Replace in-memory repositories with a database-backed implementation
+- Add authentication and authorization
+- Add filtering and sorting options
+- Deployment configuration
+
+## Design Decisions
+
+- An in-memory repository was used to keep the focus on API design, correctness, and testability.
+- The repository abstraction allows storage to be replaced without changing the API layer.
+- PATCH is used for partial updates to avoid requiring full resource replacement.
+- Tasks are addressed by global ID, with a nested endpoint for listing tasks by project.
 
 ## Author
 
