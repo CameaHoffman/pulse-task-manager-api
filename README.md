@@ -41,6 +41,27 @@ The repository layer provides in-memory data storage.
 Tests validate CRUD behavior, error handling, and partial updates for Users, Projects and Tasks.
 conftest.py provides shared pytest fixtures used to reset in-memory repositories between tests.
 
+## System Architecture
+
+This API follows a simple layered backend design to separate HTTP handling, validation, and data storage.
+
+- **API layer** (`main.py`) defines FastAPI routes and handles HTTP requests and responses.
+- **Validation layer** (`schemas.py`) defines Pydantic models used for request validation and response serialization.
+- **Repository layer** (`repository.py`) provides an in-memory storage abstraction for Users, Projects, and Tasks.
+- **Tests** (`tests/`) validate API behavior, error handling, and edge cases using pytest.
+
+### Request Flow
+
+Client  
+↓  
+FastAPI Routes (`main.py`)  
+↓  
+Validation via Pydantic Schemas (`schemas.py`)  
+↓  
+Repository Operations (`repository.py`)  
+↓  
+In-memory Storage
+
 ## API Endpoints
 
 ### Users
@@ -61,6 +82,27 @@ conftest.py provides shared pytest fixtures used to reset in-memory repositories
 - PATCH /tasks/{task_id} - partially update a task
 - DELETE /tasks/{task_id} - delete a task
 
+## Example API Usage
+
+### Create a User
+
+Request
+
+POST /users
+
+{
+  "email": "user@example.com",
+  "name": "Test User"
+}
+
+Response
+
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "name": "Test User"
+}
+
 ## Running the App
 
 1. Install dependencies:
@@ -70,7 +112,7 @@ pip install -r requirements.txt
 
 2. Start the FastAPI development server:
 ```bash
-fastapi app/dev main.py
+uvicorn app.main:app --reload
 ```
 
 Then open your browser:

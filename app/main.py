@@ -12,6 +12,13 @@ task_repo = InMemoryTaskRepository()
 def health_check():
     return {"status": "ok"}
 
+@app.get("/")
+def read_root():
+    return {
+        "service": "Pulse Task Manager API",
+        "status": "running"
+        }
+
 # ---------- USERS ----------
 
 @app.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
