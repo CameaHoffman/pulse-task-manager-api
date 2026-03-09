@@ -52,6 +52,8 @@ def test_get_user_by_id_returns_404_for_missing_user(client):
 
     assert response.status_code == 404
 
+# ------ GET USER LIST TESTS ------
+
 def test_get_user_list_success(client):
     payload = {
         "email": "test@example.com",

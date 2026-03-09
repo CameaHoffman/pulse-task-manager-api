@@ -1,10 +1,7 @@
-from fastapi.testclient import TestClient
 from app.main import app
 
-client = TestClient(app)
-
 # ------ CREATE TASK TESTS ------
-def test_create_task_returns_201_created():
+def test_create_task_returns_201_created(client):
 
     payload = {
         "name": "New Project",
@@ -37,7 +34,7 @@ def test_create_task_returns_201_created():
 
 # ------ GET TASK TESTS ------
 
-def test_get_task_by_id_returns_200():
+def test_get_task_by_id_returns_200(client):
 
     payload = {
         "name": "New Project",
@@ -72,13 +69,13 @@ def test_get_task_by_id_returns_200():
     assert data["description"] == payload["description"]
     assert data["project_id"] == project_id
 
-def test_get_task_by_id_returns_404_not_found():
+def test_get_task_by_id_returns_404_not_found(client):
     response = client.get("/tasks/999/")
     assert response.status_code == 404
 
-# ------ GET TASKS LIST TEST -------   
+# ------ GET TASKS LIST TESTS ------   
 
-def test_get_tasks_list_by_project_id_returns_tasks():
+def test_get_tasks_list_by_project_id_returns_tasks(client):
     payload = {"name": "Project One"}
 
     create_response = client.post("/projects", json=payload)
@@ -111,10 +108,72 @@ def test_get_tasks_list_by_project_id_returns_tasks():
     assert "First Task" in titles
     assert "Second Task" in titles
     assert all(t["project_id"] == project_id for t in data)
+
+def test_list_tasks_respects_limit(client):
+    project_response = client.post("/projects", json={"name": "Project One"})
+    assert project_response.status_code == 201
+    project_id = project_response.json()["id"]
+
+    payload1 = {
+        "title": "First Task",
+        "description": "Task description.",
+        "project_id": project_id
+    }
+
+    payload2 = {
+        "title": "Second Task",
+        "description": "Task description.",
+        "project_id": project_id
+    }
+
+    payload3 = {
+        "title": "Third Task",
+        "description": "Task description.",
+        "project_id": project_id
+    }
+
+    client.post("/tasks", json=payload1)
+    client.post("/tasks", json=payload2)
+    client.post("/tasks", json=payload3)
+
+    response = client.get("/tasks?limit=2&offset=0")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data) == 2
+
+def test_list_tasks_respects_limit_and_offset(client):
+    payload = {"name": "Project One"}
+    create_response = client.post("projects", json=payload)
+    assert create_response.status_code == 201
+
+    project_id = create_response.json()["id"]
+
+    payload1 = {"title": "First Task",
+               "description": "Task description.",
+               "project_id": project_id
+    }
+
+    payload2 = {"title": "Second Task",
+               "description": "Task description.",
+               "project_id": project_id
+    }
+
+    client.post("/tasks", json=payload1)
+    client.post("/tasks", json=payload2)
+
+    response = client.get(f"/projects/{project_id}/tasks?limit=1&offset=1")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["title"] == "Second Task"
+    assert data[0]["project_id"] == project_id
  
 # ------ UPDATE TASK TESTS ------
 
-def test_patch_task_title_returns_200_ok():
+def test_patch_task_title_returns_200_ok(client):
     payload = {"name": "Project One"}
 
     project_response = client.post("/projects", json=payload)
@@ -142,12 +201,12 @@ def test_patch_task_title_returns_200_ok():
     assert data["title"] == payload_patch["title"]
     assert data["project_id"] == project_id
 
-def test_patch_task_title_returns_404_when_not_found():
+def test_patch_task_title_returns_404_when_not_found(client):
     payload = {"title": "New Title"}
     response = client.patch("/tasks/999", json=payload)
     assert response.status_code == 404
 
-def test_patch_task_is_done_returns_200_ok():
+def test_patch_task_is_done_returns_200_ok(client):
     project = client.post("/projects", json={"name": "Project One"})
     project_id = project.json()["id"]
 
@@ -161,11 +220,11 @@ def test_patch_task_is_done_returns_200_ok():
     assert data["id"] == task_id
     assert data["is_done"] is True
 
-def test_patch_task_is_done_returns_404_when_not_found():
+def test_patch_task_is_done_returns_404_when_not_found(client):
     response = client.patch("/tasks/999", json={"is_done": True})
     assert response.status_code == 404
 
-def test_patch_with_multiple_fields_updates_all_changes():
+def test_patch_with_multiple_fields_updates_all_changes(client):
     project = client.post("/projects", json={"name": "Project One"})
     project_id = project.json()["id"]
 
@@ -180,7 +239,7 @@ def test_patch_with_multiple_fields_updates_all_changes():
     assert data["title"] == payload["title"]
     assert data["is_done"] is True
 
-def test_patch_with_no_fields_returns_400():
+def test_patch_with_no_fields_returns_400(client):
     project = client.post("/projects", json={"name": "Project One"})
     project_id = project.json()["id"]
 
@@ -194,7 +253,7 @@ def test_patch_with_no_fields_returns_400():
 
 # ------ DELETE TASK TESTS ------
 
-def test_delete_task_by_id_returns_204_success_no_content():
+def test_delete_task_by_id_returns_204_success_no_content(client):
     payload = {"name": "Project One"}
     project_response = client.post("/projects", json=payload)
     project_id = project_response.json()["id"]
@@ -208,7 +267,7 @@ def test_delete_task_by_id_returns_204_success_no_content():
     response = client.delete(f"/tasks/{task_id}")
     assert response.status_code == 204
 
-def test_delete_task_by_id_returns_404_when_not_found():
+def test_delete_task_by_id_returns_404_when_not_found(client):
     response = client.delete("/tasks/999")
     assert response.status_code == 404
 

@@ -153,6 +153,10 @@ class InMemoryTaskRepository:
         tasks = sorted(tasks, key=lambda t: t.id)
         return tasks[offset : offset + limit]
     
+    def list(self, limit: int = 50, offset: int = 0) -> List[TaskRecord]:
+        tasks = sorted(self._tasks_by_id.values(), key=lambda t: t.id)
+        return tasks[offset : offset + limit]
+
     def update(self, task_id: int, title: Optional[str] = None, description: Optional[str] = None,
                is_done: Optional[bool] = None) -> Optional[TaskRecord]:
         
