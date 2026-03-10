@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
+from app.database import get_connection
+
 @dataclass
 class UserRecord:
     id: int
@@ -33,47 +35,110 @@ class InMemoryUserRepository:
         self._next_id: int=1
 
     def create(self, email: str, name: Optional[str] = None) -> UserRecord:
-        user = UserRecord(id=self._next_id, email=email, name=name)
+        conn = get_connection()
+        cursor = conn.cursor()
 
-        self._users_by_id[user.id] = user
-        self._next_id += 1
-        return user
-    
+        cursor.execute(
+            "INSERT INTO users (email, name) VALUES (?, ?)",
+            (email, name)
+        )
+        conn.commit()
+
+        user_id = cursor.lastrowid
+        conn.close()
+
+        return self.get(user_id)
+
     def get(self, user_id: int) -> Optional[UserRecord]:
-        return self._users_by_id.get(user_id)
-    
-    def list(self, limit: int = 50, offset: int = 0) -> List[UserRecord]:
-        users = sorted(self._users_by_id.values(), key=lambda u: u.id)
-        return users[offset : offset + limit]
-    
-    def update(self, user_id: int, name: Optional[str], email: Optional[str]) -> Optional[UserRecord]:
-        user = self._users_by_id.get(user_id)
-        
-        if user is None:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT id, email, name FROM users WHERE id = ?",
+            (user_id,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if row is None:
             return None
         
-        if email is not None:
-            user.email = email
+        return UserRecord(
+            id=row["id"],
+            email=row["email"],
+            name=row["name"]
+        )
+    
+    def list(self, limit: int = 50, offset: int = 0) -> List[UserRecord]:
+        conn = get_connection()
+        cursor = conn.cursor()
 
-        if name is not None:
-            user.name = name
+        cursor.execute(
+            "SELECT id, email, name FROM users ORDER BY id LIMIT ? OFFSET ?",
+            (limit, offset)
+        )
+        rows = cursor.fetchall()
+        conn.close()
 
-        return user
+        return [
+            UserRecord(id=row["id"],
+                       email=row["email"],
+                       name=row["name"]
+                       )
+                       for row in rows
+        ]
+    
+    def update(self, user_id: int, name: Optional[str] = None, email: Optional[str] = None) -> Optional[UserRecord]:
+        existing_user = self.get(user_id)
+
+        if existing_user is None:
+            return None
+        
+        updated_name = name if name is not None else existing_user.name
+        updated_email = email if email is not None else existing_user.email
+        
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "UPDATE users SET email = ?, name = ? WHERE id = ?",
+                (updated_email, updated_name, user_id,)
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        return self.get(user_id)
     
     def delete(self, user_id: int):
-        user = self._users_by_id.get(user_id)
+        conn = get_connection()
+        try:
+
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "DELETE FROM users WHERE id = ?",
+                (user_id,)
+            )
         
-        if user is None:
-            return False
-        
-        else:
-            self._users_by_id.pop(user_id)
-            return True
-    
+            deleted = cursor.rowcount
+            conn.commit()
+        finally:
+            conn.close()
+
+        return deleted > 0
+
     def reset(self) -> None:
         """ Convenience for tests."""
-        self._users_by_id.clear()
-        self._next_id = 1
+        conn = get_connection()
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM users")
+            conn.commit()
+        finally:
+            conn.close()
 
 class InMemoryProjectRepository:
     """

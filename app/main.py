@@ -1,8 +1,10 @@
 from fastapi import FastAPI,HTTPException, status
 from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate
 from app.repository import InMemoryUserRepository, InMemoryProjectRepository, InMemoryTaskRepository
+from app.database import init_db
 
 app = FastAPI()
+init_db()
 
 user_repo = InMemoryUserRepository()
 project_repo = InMemoryProjectRepository()
