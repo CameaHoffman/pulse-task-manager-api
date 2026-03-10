@@ -4,15 +4,18 @@
 
 This project is a RESTful API built with FastAPI. It demonstrates test-driven development, request validation, clean REST API design, and partial updates using PATCH.
 
+The API models a simple task management system with Users, Projects, and Tasks, backed by a SQLite persistence layer.
+
 ## Features
 
 - Create, retrieve, update, and list Users
 - Create, retrieve, update, and list Projects
 - Create, retrieve, update, and list Tasks
 - List tasks by project
+- Pagination using limit and offset
 - Partial updates using PATCH
 - Input validation using Pydantic
-- In-memory repositories with a clean abstraction layer
+- Repository pattern with SQLite persistence
 - Fully tested with pytest (98% coverage)
 
 ## Tech Stack
@@ -20,6 +23,7 @@ This project is a RESTful API built with FastAPI. It demonstrates test-driven de
 - Python 3.x
 - FastAPI
 - Pydantic
+- SQLite
 - pytest
 
 ## Project Structure
@@ -28,6 +32,8 @@ app/
     main.py
     schemas.py
     repository.py
+    database.py
+
 tests/
     conftest.py
     test_users.py
@@ -35,56 +41,70 @@ tests/
     test_tasks.py
     test_health.py
 
-The main application file defines the FastAPI app and routes.  
-Schemas define Pydantic request and response models.  
-The repository layer provides in-memory data storage.  
-Tests validate CRUD behavior, error handling, and partial updates for Users, Projects and Tasks.
-conftest.py provides shared pytest fixtures used to reset in-memory repositories between tests.
+main.py defines the FastAPI application and API routes.
+
+schemas.py defines Pydantic request and response models.
+
+repository.py implements repository classes for Users, Projects, and Tasks.
+
+database.py manages the SQLite connection and database initialization.
+
+tests/ contains pytest test suites covering API behavior and edge cases.
+
+Shared pytest fixtures reset the database between tests to ensure deterministic results.
 
 ## System Architecture
 
-This API follows a simple layered backend design to separate HTTP handling, validation, and data storage.
+This API follows a layered backend design to separate HTTP handling, validation, and persistence logic.
 
-- **API layer** (`main.py`) defines FastAPI routes and handles HTTP requests and responses.
-- **Validation layer** (`schemas.py`) defines Pydantic models used for request validation and response serialization.
-- **Repository layer** (`repository.py`) provides an in-memory storage abstraction for Users, Projects, and Tasks.
-- **Tests** (`tests/`) validate API behavior, error handling, and edge cases using pytest.
+API layer (main.py) defines FastAPI routes and handles HTTP requests and responses.
+
+Validation layer (schemas.py) defines Pydantic models for request validation and serialization.
+
+Repository layer (repository.py) encapsulates database operations.
+
+Database layer (database.py) manages SQLite connections and schema initialization.
+
+Tests validate API behavior, error handling, and edge cases.
 
 ### Request Flow
 
-Client  
-↓  
-FastAPI Routes (`main.py`)  
-↓  
-Validation via Pydantic Schemas (`schemas.py`)  
-↓  
-Repository Operations (`repository.py`)  
-↓  
-In-memory Storage
+Client
+↓
+FastAPI Routes (main.py)
+↓
+Validation via Pydantic Schemas (schemas.py)
+↓
+Repository Operations (repository.py)
+↓
+SQLite Database
 
 ## API Endpoints
 
 ### Users
-- POST /users – create a user
-- GET /users/{user_id} – retrieve a user by ID
-- GET /users – list users
+
+POST /users – create a user  
+GET /users/{user_id} – retrieve a user by ID  
+GET /users – list users
 
 ### Projects
-- POST /projects – create a project
-- GET /projects/{project_id} – retrieve a project by ID
-- GET /projects – list projects
+
+POST /projects – create a project  
+GET /projects/{project_id} – retrieve a project by ID  
+GET /projects – list projects
 
 ### Tasks
-- POST /tasks – create a task
-- GET /tasks/{task_id} – retrieve a task by ID
-- GET /tasks - list tasks
-- GET /projects/{project_id}/tasks – list tasks for a project
-- PATCH /tasks/{task_id} - partially update a task
-- DELETE /tasks/{task_id} - delete a task
+
+POST /tasks – create a task  
+GET /tasks/{task_id} – retrieve a task by ID  
+GET /tasks – list tasks  
+GET /projects/{project_id}/tasks – list tasks for a project  
+PATCH /tasks/{task_id} – partially update a task  
+DELETE /tasks/{task_id} – delete a task
 
 ## Example API Usage
 
-### Create a User
+Create a User
 
 Request
 
@@ -98,49 +118,48 @@ POST /users
 Response
 
 {
-  "id": "uuid",
+  "id": 1,
   "email": "user@example.com",
   "name": "Test User"
 }
 
 ## Running the App
 
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+Install dependencies:
 
-2. Start the FastAPI development server:
-```bash
+pip install -r requirements.txt
+
+Start the FastAPI development server:
+
 uvicorn app.main:app --reload
-```
 
 Then open your browser:
-- http://127.0.0.1:8000
-- API docs: http://127.0.0.1:8000/docs
+
+http://127.0.0.1:8000  
+http://127.0.0.1:8000/docs
 
 ## Running Tests
 
 From the project directory:
-```bash
+
 pytest
-```
 
 All tests should pass.
 
 ## Future Improvements
 
-- Replace in-memory repositories with a database-backed implementation
 - Add authentication and authorization
 - Add filtering and sorting options
-- Deployment configuration
+- Add Docker containerization
+- Deploy the API
 
 ## Design Decisions
 
-- An in-memory repository was used to keep the focus on API design, correctness, and testability.
-- The repository abstraction allows storage to be replaced without changing the API layer.
+- The repository pattern isolates persistence logic from the API layer.
+- SQLite provides lightweight persistence while keeping the project easy to run locally.
+- Pagination via limit and offset keeps list endpoints scalable.
 - PATCH is used for partial updates to avoid requiring full resource replacement.
-- Tasks are addressed by global ID, with a nested endpoint for listing tasks by project.
+- Tasks reference projects using a foreign key relationship.
 
 ## Author
 
