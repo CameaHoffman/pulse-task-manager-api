@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException, status
+from fastapi import FastAPI, HTTPException, status
 from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate
 from app.repository import SQLiteUserRepository, SQLiteProjectRepository, SQLiteTaskRepository
 from app.database import init_db
@@ -36,7 +36,7 @@ def get_user(user_id: int):
     return UserRead(id=user.id, email=user.email, name=user.name)
 
 @app.get("/users", response_model=list[UserRead])
-def get_users_list(limit: int = 50, offset: int=0):
+def get_users_list(limit: int = 50, offset: int = 0):
     users = user_repo.list(limit=limit, offset=offset)
     return [UserRead(id=u.id, email=u.email, name=u.name) for u in users]
 
@@ -58,11 +58,12 @@ def update_user(user_id: int, update: UserUpdate):
 
 @app.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int):
-    user = user_repo.get(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    user_repo.delete(user_id)
+    deleted = user_repo.delete(user_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+            )
 
 # ---------- PROJECTS ----------
 
@@ -100,11 +101,12 @@ def update_project(project_id: int, update: ProjectUpdate):
 
 @app.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(project_id: int):
-    project = project_repo.get(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    project_repo.delete(project_id)
+    deleted = project_repo.delete(project_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+            )
 
 # ------ TASKS ------
 
@@ -203,9 +205,9 @@ def update_task(task_id: int, update: TaskUpdate):
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int):
-    task = task_repo.get(task_id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    
-    task_repo.delete(task_id)
+    deleted = task_repo.delete(task_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found")
 
