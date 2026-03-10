@@ -8,7 +8,7 @@ def client():
 
 @pytest.fixture(autouse=True)
 def reset_repositories():
-    user_repo.reset()
-    project_repo.reset()
     task_repo.reset()
+    project_repo.reset()
+    user_repo.reset()
     

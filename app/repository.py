@@ -25,40 +25,37 @@ class TaskRecord:
     description: Optional[str] = None
     is_done: bool = False
     
-class InMemoryUserRepository:
-    """
-    In-memory repository for Users. Replace later.
-    """
-
-    def __init__(self) -> None:
-        self._users_by_id: Dict[int, UserRecord] = {}
-        self._next_id: int=1
+class SQLiteUserRepository:
 
     def create(self, email: str, name: Optional[str] = None) -> UserRecord:
         conn = get_connection()
-        cursor = conn.cursor()
+        try:
+            cursor = conn.cursor()
 
-        cursor.execute(
-            "INSERT INTO users (email, name) VALUES (?, ?)",
-            (email, name)
-        )
-        conn.commit()
+            cursor.execute(
+                "INSERT INTO users (email, name) VALUES (?, ?)",
+                (email, name)
+            )
+            conn.commit()
 
-        user_id = cursor.lastrowid
-        conn.close()
+            user_id = cursor.lastrowid
+        finally:
+            conn.close()
 
         return self.get(user_id)
 
     def get(self, user_id: int) -> Optional[UserRecord]:
         conn = get_connection()
-        cursor = conn.cursor()
+        try:
+            cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT id, email, name FROM users WHERE id = ?",
-            (user_id,)
-        )
-        row = cursor.fetchone()
-        conn.close()
+            cursor.execute(
+                "SELECT id, email, name FROM users WHERE id = ?",
+                (user_id,)
+            )
+            row = cursor.fetchone()
+        finally:
+            conn.close()
 
         if row is None:
             return None
@@ -71,14 +68,17 @@ class InMemoryUserRepository:
     
     def list(self, limit: int = 50, offset: int = 0) -> List[UserRecord]:
         conn = get_connection()
-        cursor = conn.cursor()
+        try:
+            cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT id, email, name FROM users ORDER BY id LIMIT ? OFFSET ?",
-            (limit, offset)
-        )
-        rows = cursor.fetchall()
-        conn.close()
+            cursor.execute(
+                "SELECT id, email, name FROM users ORDER BY id LIMIT ? OFFSET ?",
+                (limit, offset)
+            )
+            rows = cursor.fetchall()
+        finally:
+
+            conn.close()
 
         return [
             UserRecord(id=row["id"],
@@ -132,7 +132,6 @@ class InMemoryUserRepository:
     def reset(self) -> None:
         """ Convenience for tests."""
         conn = get_connection()
-
         try:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM users")
@@ -140,118 +139,271 @@ class InMemoryUserRepository:
         finally:
             conn.close()
 
-class InMemoryProjectRepository:
-    """
-    In-memory repository for Projects. Replace Later."""
-
-    def __init__(self) -> None:
-        self._projects_by_id: Dict[int, ProjectRecord] = {}
-        self._next_id: int=1
+class SQLiteProjectRepository:
 
     def create(self, name: str, description: Optional[str] = None) -> ProjectRecord:
-        project = ProjectRecord(id=self._next_id, name=name, description=description)
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
 
-        self._projects_by_id[project.id] = project
-        self._next_id += 1
-        return project
+            cursor.execute(
+                "INSERT INTO projects (name, description) VALUES (?, ?)",
+                (name, description)
+            )
+            conn.commit()
+
+            project_id = cursor.lastrowid
+        finally:
+            conn.close()
+
+        return self.get(project_id)
     
     def get(self, project_id: int) -> Optional[ProjectRecord]:
-        return self._projects_by_id.get(project_id)
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
 
-    def list(self, limit: int = 50, offset: int = 0) -> List[ProjectRecord]:
-        projects = sorted(self._projects_by_id.values(), key=lambda p: p.id)
-        return projects[offset : offset + limit]
-    
-    def update(self, project_id: int, name: Optional[str], description: Optional[str]) -> Optional[ProjectRecord]:
-        project = self._projects_by_id.get(project_id)
-        
-        if project is None:
+            cursor.execute(
+                "SELECT id, name, description FROM projects WHERE id = ?",
+                (project_id,)
+            )
+            row = cursor.fetchone()
+        finally:
+            conn.close()
+
+        if row is None:
             return None
         
-        if name is not None:
-            project.name = name
+        return ProjectRecord(
+            id=row["id"],
+            name=row["name"],
+            description=row["description"]
+            )
+        
+    def list(self, limit: int = 50, offset: int = 0) -> List[ProjectRecord]:
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
 
-        if description is not None:
-            project.description = description
+            cursor.execute(
+                "SELECT id, name, description FROM projects ORDER BY id LIMIT ? OFFSET ?",
+                (limit, offset)
+            )
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
 
-        return project
+        return [
+            ProjectRecord(id=row["id"],
+                       name=row["name"],
+                       description=row["description"]
+                       )
+                       for row in rows
+        ]
+    
+    def update(self, project_id: int, name: Optional[str], description: Optional[str]) -> Optional[ProjectRecord]:
+        existing_project = self.get(project_id)
+
+        if existing_project is None:
+            return None
+        
+        updated_name = name if name is not None else existing_project.name
+        updated_description = description if description is not None else existing_project.description
+        
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "UPDATE projects SET name = ?, description = ? WHERE id = ?",
+                (updated_name, updated_description, project_id,)
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        return self.get(project_id)
     
     def delete(self, project_id: int):
-        project = self._projects_by_id.get(project_id)
-        
-        if project is None:
-            return False
-        
-        else:
-            self._projects_by_id.pop(project_id)
-            return True
+        conn = get_connection()
+        try:
 
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "DELETE FROM projects WHERE id = ?",
+                (project_id,)
+            )
+        
+            deleted = cursor.rowcount
+            conn.commit()
+        finally:
+            conn.close()
+
+        return deleted > 0
+    
     def reset(self) -> None:
-        self._projects_by_id.clear()
-        self._next_id = 1
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM projects")
+            conn.commit()
 
-class InMemoryTaskRepository:
-    """
-    In-memory repository for Tasks. Replace Later.
-    """
+        finally:
+            conn.close()
 
-    def __init__(self) -> None:
-        self._tasks_by_id: Dict[int, TaskRecord] = {}
-        self._next_id: int=1
+class SQLiteTaskRepository:
 
     def create(self, title: str, project_id: int, description: Optional[str] = None,
                is_done: bool = False) -> TaskRecord:
-        
-        task = TaskRecord(id=self._next_id, title=title,
-                          description=description, is_done=is_done, project_id=project_id)
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
 
-        self._tasks_by_id[task.id] = task
-        self._next_id += 1
+            cursor.execute(
+                "INSERT INTO tasks (title, project_id, description, is_done) VALUES (?, ?, ?, ?)",
+                (title, project_id, description, int(is_done))
+                )
 
-        return task
+            conn.commit()
+
+            task_id = cursor.lastrowid
+        finally:
+            conn.close()
+
+        return self.get(task_id)
     
     def get(self, task_id: int) -> Optional[TaskRecord]:
-        return self._tasks_by_id.get(task_id)
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "SELECT id, project_id, title, description, is_done FROM tasks WHERE id = ?",
+                (task_id,)
+            )
+            row = cursor.fetchone()
+        finally:
+            conn.close()
+
+        if row is None:
+            return None
+        
+        return TaskRecord(
+            id=row["id"],
+            project_id=row["project_id"],
+            title=row["title"],
+            description=row["description"],
+            is_done=bool(row["is_done"])
+            )
     
     def list_by_project(self, project_id: int, limit: int = 50, offset: int = 0) -> List[TaskRecord]:
-        tasks = [t for t in self._tasks_by_id.values() if t.project_id == project_id]
-        tasks = sorted(tasks, key=lambda t: t.id)
-        return tasks[offset : offset + limit]
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                SELECT id, project_id, title, description, is_done
+                FROM tasks
+                WHERE project_id = ?
+                ORDER BY id
+                LIMIT ? OFFSET ?
+                """,
+                (project_id, limit, offset)
+            )
+
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
+
+        return [
+            TaskRecord(
+            id=row["id"],
+            project_id=row["project_id"],
+            title=row["title"],
+            description=row["description"],
+            is_done=bool(row["is_done"])
+            )
+                for row in rows
+        ]
     
     def list(self, limit: int = 50, offset: int = 0) -> List[TaskRecord]:
-        tasks = sorted(self._tasks_by_id.values(), key=lambda t: t.id)
-        return tasks[offset : offset + limit]
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "SELECT id, project_id, title, description, is_done FROM tasks ORDER BY id LIMIT ? OFFSET ?",
+                (limit, offset)
+            )
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
+
+        return [
+            TaskRecord(
+            id=row["id"],
+            project_id=row["project_id"],
+            title=row["title"],
+            description=row["description"],
+            is_done=bool(row["is_done"])
+            )
+                       for row in rows
+        ]
 
     def update(self, task_id: int, title: Optional[str] = None, description: Optional[str] = None,
                is_done: Optional[bool] = None) -> Optional[TaskRecord]:
         
-        task = self._tasks_by_id.get(task_id)
-        if task is None:
+        existing_task = self.get(task_id)
+
+        if existing_task is None:
             return None
         
-        if title is not None:
-            task.title = title
+        updated_title = title if title is not None else existing_task.title
+        updated_description = description if description is not None else existing_task.description
+        updated_is_done = is_done if is_done is not None else existing_task.is_done
+        
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
 
-        if description is not None:
-            task.description = description
+            cursor.execute(
+                "UPDATE tasks SET title = ?, description = ?, is_done = ? WHERE id = ?",
+                (updated_title, updated_description, int(updated_is_done), task_id,)
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
-        if is_done is not None:
-            task.is_done = is_done
-            
-        return task
+        return self.get(task_id)
     
     def delete(self, task_id: int):
-        task = self._tasks_by_id.get(task_id)
+        conn = get_connection()
+        try:
 
-        if task is None:
-            return False
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "DELETE FROM tasks WHERE id = ?",
+                (task_id,)
+            )
         
-        else:
-            self._tasks_by_id.pop(task_id)
-            return True
+            deleted = cursor.rowcount
+            conn.commit()
+        finally:
+            conn.close()
+
+        return deleted > 0
         
     def reset(self) -> None:
-        self._tasks_by_id.clear()
-        self._next_id = 1
+        conn = get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM tasks")
+            conn.commit()
+
+        finally:
+            conn.close()
         
 
