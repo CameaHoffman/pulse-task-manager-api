@@ -6,6 +6,7 @@ from typing import Optional
 class UserCreate(BaseModel):
     email: EmailStr
     name: Optional[str] = None
+    password: str
 
 class UserRead(BaseModel):
     id: int
@@ -15,6 +16,12 @@ class UserRead(BaseModel):
 class UserUpdate(BaseModel):
     email: Optional[str] = None
     name: Optional[str] = None
+
+# ------ TOKEN SCHEMA ------
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 # ------ PROJECT SCHEMAS ------
 
