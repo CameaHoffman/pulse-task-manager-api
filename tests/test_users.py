@@ -5,7 +5,8 @@ from app.main import app
 def test_create_user(client):
     payload = {
         "email": "test@example.com",
-        "name": "Test User"
+        "name": "Test User",
+        "password": "securepassword"
     }
 
     response = client.post("/users", json=payload)
@@ -19,7 +20,8 @@ def test_create_user(client):
 
 def test_create_user_returns_422_when_email_missing(client):
     payload = {
-        "name": "Test User"
+        "name": "Test User",
+        "password": "securepassword"
     }
 
     response = client.post("/users", json=payload)
@@ -31,7 +33,8 @@ def test_create_user_returns_422_when_email_missing(client):
 def test_get_user_by_id_returns_user(client):
     payload = {
         "email": "test@example.com",
-        "name": "Test User"
+        "name": "Test User",
+        "password": "securepassword"
     }
 
     create_response = client.post("/users", json=payload)
@@ -57,7 +60,8 @@ def test_get_user_by_id_returns_404_for_missing_user(client):
 def test_get_user_list_success(client):
     payload = {
         "email": "test@example.com",
-        "name": "Test User"
+        "name": "Test User",
+        "password": "securepassword"
     }
 
     create_response = client.post("/users", json=payload)
@@ -77,9 +81,23 @@ def test_get_user_list_empty(client):
     assert response.json() == []
 
 def test_list_users_respects_limit(client):
-    payload1 = {"email": "a@test.com", "name": "User A"}
-    payload2 = {"email": "b@test.com", "name": "User B"}
-    payload3 = {"email": "c@test.com", "name": "User C"}
+    payload1 = {
+        "email": "a@test.com",
+        "name": "User A",
+        "password": "securepassword"
+        }
+    
+    payload2 = {
+        "email": "b@test.com",
+        "name": "User B",
+        "password": "securepassword"
+        }
+    
+    payload3 = {
+        "email": "c@test.com",
+        "name": "User C",
+        "password": "securepassword"
+        }
 
     client.post("/users", json=payload1)
     client.post("/users", json=payload2)
@@ -95,9 +113,23 @@ def test_list_users_respects_limit(client):
     assert data[1]["email"] == "b@test.com"
 
 def test_list_users_respects_offset(client):
-    payload1 = {"email": "a@test.com", "name": "User A"}
-    payload2 = {"email": "b@test.com", "name": "User B"}
-    payload3 = {"email": "c@test.com", "name": "User C"}
+    payload1 = {
+        "email": "a@test.com",
+        "name": "User A",
+        "password": "securepassword"
+        }
+    
+    payload2 = {
+        "email": "b@test.com",
+        "name": "User B",
+        "password": "securepassword"
+        }
+    
+    payload3 = {
+        "email": "c@test.com",
+        "name": "User C",
+        "password": "securepassword"
+        }
 
     client.post("/users", json=payload1)
     client.post("/users", json=payload2)
@@ -114,8 +146,11 @@ def test_list_users_respects_offset(client):
 # ------ PATCH TESTS/UPDATE USER ------
 
 def test_patch_user_email_returns_200_ok(client):
-    payload = {"email": "example@email.com",
-               "name": "New User"}
+    payload = {
+        "email": "example@email.com",
+        "name": "New User",
+        "password": "securepassword"
+        }
 
     create_response = client.post("/users", json=payload)
     assert create_response.status_code == 201
@@ -132,16 +167,22 @@ def test_patch_user_email_returns_200_ok(client):
     assert data["email"] == payload_patch["email"]
 
 def test_patch_user_email_returns_404_when_not_found(client):
-    payload = {"email": "example@email.com",
-               "name": "New Name"}
+    payload = {
+        "email": "example@email.com",
+        "name": "New Name",
+        "password": "securepassword"
+        }
     response = client.patch("/users/999", json=payload)
     assert response.status_code == 404
 
 # ------ DELETE USER TESTS ------
 
 def test_delete_user_by_id_returns_204_success_no_content(client):
-    payload = {"email": "example@email.com",
-        "name": "New User"}
+    payload = {
+        "email": "example@email.com",
+        "name": "New User",
+        "password": "securepassword"
+        }
 
     create_response = client.post("/users", json=payload)
     assert create_response.status_code == 201
