@@ -9,8 +9,9 @@ from app.database import get_connection
 class UserRecord:
     id: int
     email: str
+    hashed_password: str
     name: Optional[str] = None
-
+    
 @dataclass
 class ProjectRecord:
     id: int
@@ -27,13 +28,13 @@ class TaskRecord:
     
 class SQLiteUserRepository:
 
-    def create(self, email: str, name: Optional[str] = None) -> UserRecord:
+    def create(self, email: str, hashed_password: str, name: Optional[str] = None) -> UserRecord:
         with get_connection() as conn:
             cursor = conn.cursor()
         
             cursor.execute(
-                "INSERT INTO users (email, name) VALUES (?, ?)",
-                (email, name)
+                "INSERT INTO users (email, name, hashed_password) VALUES (?, ?, ?)",
+                (email, name, hashed_password)
             )
 
             user_id = cursor.lastrowid
@@ -45,7 +46,7 @@ class SQLiteUserRepository:
             cursor = conn.cursor()
 
             cursor.execute(
-                "SELECT id, email, name FROM users WHERE id = ?",
+                "SELECT id, email, name, hashed_password FROM users WHERE id = ?",
                 (user_id,)
             )
             row = cursor.fetchone()
@@ -56,7 +57,29 @@ class SQLiteUserRepository:
         return UserRecord(
             id=row["id"],
             email=row["email"],
-            name=row["name"]
+            name=row["name"],
+            hashed_password=row["hashed_password"]
+        )
+    
+    def get_user_by_email(self, email: str) -> Optional[UserRecord]:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "SELECT id, email, name, hashed_password FROM users WHERE email = ?",
+                (email,)
+            )
+
+            row = cursor.fetchone()
+
+        if row is None:
+            return None
+        
+        return UserRecord(
+            id=row["id"],
+            email=row["email"],
+            name=row["name"],
+            hashed_password=row["hashed_password"]
         )
     
     def list(self, limit: int = 50, offset: int = 0) -> List[UserRecord]:
@@ -64,7 +87,7 @@ class SQLiteUserRepository:
             cursor = conn.cursor()
 
             cursor.execute(
-                "SELECT id, email, name FROM users ORDER BY id LIMIT ? OFFSET ?",
+                "SELECT id, email, name, hashed_password FROM users ORDER BY id LIMIT ? OFFSET ?",
                 (limit, offset)
             )
             rows = cursor.fetchall()
@@ -73,7 +96,8 @@ class SQLiteUserRepository:
             UserRecord(
                 id=row["id"],
                 email=row["email"],
-                name=row["name"]
+                name=row["name"],
+                hashed_password=row["hashed_password"]
             )
             for row in rows
         ]

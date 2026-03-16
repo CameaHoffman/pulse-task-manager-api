@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, status
-from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate
+from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate, Token
 from app.repository import SQLiteUserRepository, SQLiteProjectRepository, SQLiteTaskRepository
 from app.database import init_db
 
@@ -83,6 +84,14 @@ def delete_user(user_id: int):
             status_code=404,
             detail="User not found"
             )
+    
+# ---------- TOKEN -----------
+
+@app.post("/token", response_model=Token)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    
+    return {"username": form_data.username, "password": form_data.password}
+
 
 # ---------- PROJECTS ----------
 
