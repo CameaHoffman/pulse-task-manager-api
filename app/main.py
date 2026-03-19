@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate, Token
 from app.repository import SQLiteUserRepository, SQLiteProjectRepository, SQLiteTaskRepository
 from app.database import init_db
+from app.auth import hash_password, verify_password
 
 app = FastAPI()
 init_db()
@@ -45,7 +46,14 @@ def read_root():
 
 @app.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(payload: UserCreate):
-    user = user_repo.create(email=payload.email, name=payload.name)
+    hashed_password = hash_password(payload.password)
+
+    user = user_repo.create(
+        email=payload.email,
+        hashed_password=hashed_password,
+        name=payload.name
+        )
+    
     return to_user_read(user)
 
 @app.get("/users/{user_id}", response_model=UserRead)
@@ -89,9 +97,18 @@ def delete_user(user_id: int):
 
 @app.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    
-    return {"username": form_data.username, "password": form_data.password}
+    user = user_repo.get_user_by_email(form_data.username)
 
+    if user is None or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password"
+        )
+    
+    return {
+        "access_token": "test-token",
+        "token_type": "bearer"
+    }
 
 # ---------- PROJECTS ----------
 

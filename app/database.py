@@ -12,29 +12,30 @@ def init_db():
     with get_connection() as conn:
         cursor = conn.cursor()
 
-    cursor.execute("""
-                   CREATE TABLE IF NOT EXISTS users (
-                   id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   email TEXT NOT NULL UNIQUE,
-                   name TEXT NOT NULL
-                   )
-                   """)
-    
-    cursor.execute("""
-                   CREATE TABLE IF NOT EXISTS projects (
-                   id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   name TEXT NOT NULL,
-                   description TEXT
-                   )
-                   """)
-    
-    cursor.execute("""
-                   CREATE TABLE IF NOT EXISTS tasks (
-                   id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   title TEXT NOT NULL,
-                   description TEXT,
-                   project_id INTEGER NOT NULL,
-                   is_done INTEGER NOT NULL DEFAULT 0,
-                   FOREIGN KEY (project_id) REFERENCES projects (id)
-                   )
-                   """)
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS users (
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       email TEXT NOT NULL UNIQUE,
+                       name TEXT,
+                       hashed_password TEXT NOT NULL
+                       )
+        """)
+        
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS projects (
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       name TEXT NOT NULL,
+                       description TEXT
+                       )
+                       """)
+        
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS tasks (
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       title TEXT NOT NULL,
+                       description TEXT,
+                       project_id INTEGER NOT NULL,
+                       is_done INTEGER NOT NULL DEFAULT 0,
+                       FOREIGN KEY (project_id) REFERENCES projects (id)
+                       )
+                       """)
