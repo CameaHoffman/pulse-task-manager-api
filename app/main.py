@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate, Token
 from app.repository import SQLiteUserRepository, SQLiteProjectRepository, SQLiteTaskRepository
 from app.database import init_db
-from app.auth import hash_password, verify_password
+from app.auth import hash_password, verify_password, create_access_token
 
 app = FastAPI()
 init_db()
@@ -104,6 +104,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password"
         )
+    
+    access_token = create_access_token(data={"sub": user.email})
     
     return {
         "access_token": "test-token",
