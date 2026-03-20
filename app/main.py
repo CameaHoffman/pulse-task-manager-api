@@ -1,12 +1,28 @@
 from fastapi import FastAPI, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordRequestForm
-from app.schemas import UserCreate, UserRead, UserUpdate, ProjectCreate, ProjectRead, ProjectUpdate, TaskCreate, TaskRead, TaskUpdate, Token
-from app.repository import SQLiteUserRepository, SQLiteProjectRepository, SQLiteTaskRepository
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+import jwt
+from app.schemas import (
+    UserCreate, UserRead, UserUpdate, 
+    ProjectCreate, ProjectRead, ProjectUpdate, 
+    TaskCreate, TaskRead, TaskUpdate, Token
+)
+from app.repository import (SQLiteUserRepository, 
+                            SQLiteProjectRepository, 
+                            SQLiteTaskRepository
+)
 from app.database import init_db
-from app.auth import hash_password, verify_password, create_access_token
+from app.auth import (
+    hash_password, 
+    verify_password, 
+    create_access_token,
+    SECRET_KEY,
+    ALGORITHM
+)
 
 app = FastAPI()
 init_db()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 user_repo = SQLiteUserRepository()
 project_repo = SQLiteProjectRepository()
@@ -30,6 +46,27 @@ def to_task_read(task):
         description=task.description,
         is_done=task.is_done,
     )
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except jwt.PyJWTError:
+        raise credentials_exception
+    
+    user = user_repo.get_user_by_email(email)
+    if user is None:
+        raise credentials_exception
+    
+    return user
 
 @app.get("/health")
 def health_check():
@@ -115,7 +152,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 # ---------- PROJECTS ----------
 
 @app.post("/projects", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
-def create_project(payload: ProjectCreate):
+def create_project(payload: ProjectCreate, current_user=Depends(get_current_user)):
     project = project_repo.create(name=payload.name, description=payload.description)
     return to_project_read(project)
 
@@ -132,7 +169,7 @@ def get_projects_list(limit: int=50, offset: int=0):
     return [to_project_read(p) for p in projects]
 
 @app.patch("/projects/{project_id}", response_model=ProjectRead)
-def update_project(project_id: int, update: ProjectUpdate):
+def update_project(project_id: int, update: ProjectUpdate, current_user=Depends(get_current_user)):
 
     if update.name is None and update.description is None:
         raise HTTPException(status_code=400, detail="No fields provided to update")
@@ -147,7 +184,7 @@ def update_project(project_id: int, update: ProjectUpdate):
     return to_project_read(project)
 
 @app.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(project_id: int):
+def delete_project(project_id: int, current_user=Depends(get_current_user)):
     deleted = project_repo.delete(project_id)
     if not deleted:
         raise HTTPException(
@@ -158,7 +195,7 @@ def delete_project(project_id: int):
 # ------ TASKS ------
 
 @app.post("/tasks", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
-def create_task(payload: TaskCreate):
+def create_task(payload: TaskCreate, current_user=Depends(get_current_user)):
     task = task_repo.create(
         title=payload.title,
         project_id=payload.project_id,
@@ -192,7 +229,7 @@ def get_all_tasks(limit: int=50, offset: int = 0):
     return [to_task_read(t) for t in tasks]
 
 @app.patch("/tasks/{task_id}", response_model=TaskRead)
-def update_task(task_id: int, update: TaskUpdate):
+def update_task(task_id: int, update: TaskUpdate, current_user=Depends(get_current_user)):
 
     if (
         update.title is None
@@ -215,7 +252,7 @@ def update_task(task_id: int, update: TaskUpdate):
     return to_task_read(task)
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(task_id: int):
+def delete_task(task_id: int, current_user=Depends(get_current_user)):
     deleted = task_repo.delete(task_id)
     if not deleted:
         raise HTTPException(
