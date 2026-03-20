@@ -14,9 +14,11 @@ The API models a simple task management system with Users, Projects, and Tasks, 
 - List tasks by project
 - Pagination using limit and offset
 - Partial updates using PATCH
+- JWT-based authentication (login + projected routes)
+- Password hashing using bcrypt
 - Input validation using Pydantic
 - Repository pattern with SQLite persistence
-- Fully tested with pytest (98% coverage)
+- Fully tested with pytest
 
 ## Tech Stack
 
@@ -24,6 +26,8 @@ The API models a simple task management system with Users, Projects, and Tasks, 
 - FastAPI
 - Pydantic
 - SQLite
+- PyJWT
+- passlib (bcrypt)
 - pytest
 
 ## Project Structure
@@ -33,25 +37,28 @@ app/
     schemas.py
     repository.py
     database.py
+    auth.py
 
 tests/
     conftest.py
     test_users.py
     test_projects.py
     test_tasks.py
+    test_authentication.py
     test_health.py
 
-main.py defines the FastAPI application and API routes.
+## Authentication
 
-schemas.py defines Pydantic request and response models.
+This API uses JWT-based authentication.
 
-repository.py implements repository classes for Users, Projects, and Tasks.
+- Users register with an email and password
+- Passwords are securely hashed using bcrypt
+- Clients obtain a token via:
 
-database.py manages the SQLite connection and database initialization.
+POST/token
+- Protected endpoints require:
 
-tests/ contains pytest test suites covering API behavior and edge cases.
-
-Shared pytest fixtures reset the database between tests to ensure deterministic results.
+Authorization: Bearer <access_token>
 
 ## System Architecture
 
@@ -59,11 +66,13 @@ This API follows a layered backend design to separate HTTP handling, validation,
 
 API layer (main.py) defines FastAPI routes and handles HTTP requests and responses.
 
-Validation layer (schemas.py) defines Pydantic models for request validation and serialization.
+Validation layer (schemas.py) defines request/response models.
 
 Repository layer (repository.py) encapsulates database operations.
 
-Database layer (database.py) manages SQLite connections and schema initialization.
+Auth layer (auth.py) handles password hasing and JWT creation/verification.
+
+Database layer (database.py) manages SQLite connections and schema.
 
 Tests validate API behavior, error handling, and edge cases.
 
@@ -73,34 +82,49 @@ Client
 ↓
 FastAPI Routes (main.py)
 ↓
-Validation via Pydantic Schemas (schemas.py)
+Authentication Dependency (JWT validation)
 ↓
-Repository Operations (repository.py)
+Validation via Pydantic Schemas
+↓
+Repository Operations
 ↓
 SQLite Database
 
 ## API Endpoints
+
+Authenticated endpoints require a Bearer token.
 
 ### Users
 
 POST /users – create a user  
 GET /users/{user_id} – retrieve a user by ID  
 GET /users – list users
+PATCH /users/{user_id} - update user 
+DELETE /users/{user_id} - delete a user
 
-### Projects
+### Authentication
 
-POST /projects – create a project  
-GET /projects/{project_id} – retrieve a project by ID  
-GET /projects – list projects
+POST /token - obtain access token
+
+### Projects (Authenticated)
+
+POST /projects – create a project
+PATCH /projects/{project_id} - update a project  
+DELETE /projects/{project_id} - delete a project
 
 ### Tasks
 
 POST /tasks – create a task  
-GET /tasks/{task_id} – retrieve a task by ID  
-GET /tasks – list tasks  
-GET /projects/{project_id}/tasks – list tasks for a project  
-PATCH /tasks/{task_id} – partially update a task  
+PATCH /tasks/{task_id} – update a task  
 DELETE /tasks/{task_id} – delete a task
+
+### Public Reads
+
+GET /projects – list projects
+GET /projects/{project_id} – retrieve a project by ID
+GET /tasks – list tasks  
+GET /tasks/{task_id} – retrieve a task by ID
+GET /projects/{project_id}/tasks – list tasks for a project  
 
 ## Example API Usage
 
@@ -108,24 +132,26 @@ Create a User
 
 Request
 
-POST /users
+### POST /users
 
 {
   "email": "user@example.com",
-  "name": "Test User"
+  "name": "Test User",
+  "password": "securepassword"
 }
 
-Response
+### Login
 
-{
-  "id": 1,
-  "email": "user@example.com",
-  "name": "Test User"
-}
+POST/token
+
+username=user@example.om
+password=securepassword
+
+### Use Token
+
+Authorization: Bearer <access_token>
 
 ## Running the App
-
-Install dependencies:
 
 pip install -r requirements.txt
 
@@ -140,26 +166,24 @@ http://127.0.0.1:8000/docs
 
 ## Running Tests
 
-From the project directory:
-
 pytest
-
-All tests should pass.
 
 ## Future Improvements
 
-- Add authentication and authorization
-- Add filtering and sorting options
-- Add Docker containerization
-- Deploy the API
+- Associate resources with users (multi-tenant ownership)
+- Role-based access control (RBAC)
+- Refresh tokens/token rotation
+- Docker containerization
+- Deployment
 
 ## Design Decisions
 
-- The repository pattern isolates persistence logic from the API layer.
-- SQLite provides lightweight persistence while keeping the project easy to run locally.
-- Pagination via limit and offset keeps list endpoints scalable.
-- PATCH is used for partial updates to avoid requiring full resource replacement.
-- Tasks reference projects using a foreign key relationship.
+- Repository pattern isolates persistence logic from the API layer
+- JWT enables stateless authentication
+- bcrypt ensures secure password storage
+- SQLite keeps setup lightweight for local development
+- Pagination via limit/offset supports scalability
+- PATCH allows partial updates without full replacement
 
 ## Author
 
