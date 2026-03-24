@@ -3,8 +3,12 @@ annotated-types==0.7.0
 anyio==4.12.1
 bcrypt==4.2.1
 certifi==2026.2.25
+cffi==2.0.0
+click==8.3.1
 coverage==7.13.4
+cryptography==46.0.5
 dnspython==2.8.0
+ecdsa==0.19.1
 email-validator==2.3.0
 -e git+https://github.com/CameaHoffman/etlkit.git@71833502b044b20fe599f9c47d0df30d7029645c#egg=etlkit
 fastapi==0.135.1
@@ -19,6 +23,8 @@ packaging==25.0
 pandas==2.3.3
 passlib==1.7.4
 pluggy==1.6.0
+pyasn1==0.6.3
+pycparser==3.0
 pydantic==2.12.5
 pydantic_core==2.41.5
 Pygments==2.19.2
@@ -26,11 +32,14 @@ PyJWT==2.12.1
 pytest==9.0.2
 pytest-cov==7.0.0
 python-dateutil==2.9.0.post0
+python-jose==3.5.0
 python-multipart==0.0.22
 pytz==2025.2
+rsa==4.9.1
 six==1.17.0
 starlette==0.52.1
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.3
+uvicorn==0.40.0
 xmltodict==1.0.4

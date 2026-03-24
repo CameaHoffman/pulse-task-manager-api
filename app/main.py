@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-import jwt
+from jose import jwt, JWTError
 from app.schemas import (
     UserCreate, UserRead, UserUpdate, 
     ProjectCreate, ProjectRead, ProjectUpdate, 
@@ -59,7 +59,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         email = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except jwt.PyJWTError:
+    except JWTError:
         raise credentials_exception
     
     user = user_repo.get_user_by_email(email)
