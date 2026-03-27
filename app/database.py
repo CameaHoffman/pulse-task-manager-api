@@ -1,9 +1,9 @@
 import sqlite3
-
-DATABASE_NAME = "pulse.db"
+import os
+from app.config import DATABASE_PATH
 
 def get_connection():
-    conn = sqlite3.connect(DATABASE_NAME, timeout=10)
+    conn = sqlite3.connect(DATABASE_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn

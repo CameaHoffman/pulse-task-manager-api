@@ -15,8 +15,10 @@ from app.auth import (
     hash_password, 
     verify_password, 
     create_access_token,
-    SECRET_KEY,
-    ALGORITHM
+)
+
+from app.config import (SECRET_KEY,
+                        ALGORITHM,
 )
 
 app = FastAPI()
