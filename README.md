@@ -2,9 +2,20 @@
 
 ## Description
 
-This project is a RESTful API built with FastAPI. It demonstrates test-driven development, request validation, clean REST API design, and partial updates using PATCH.
+A production-style REST API built with FastAPI for managing users, projects, and tasks.
+
+This project demonstrates clean backend architecture, authentication, relational data modeling, and deployment to a live cloud environment.
 
 The API models a simple task management system with Users, Projects, and Tasks, backed by a SQLite persistence layer.
+
+## Live Demo
+
+Deployed on Azure App Service:
+
+https://pulse-task-manager-api-bjceasdtcackdebf.westus3-01.azurewebsites.net
+
+- Health Check: '/health'
+- API Docs: '/docs'
 
 ## Features
 
@@ -14,7 +25,7 @@ The API models a simple task management system with Users, Projects, and Tasks, 
 - List tasks by project
 - Pagination using limit and offset
 - Partial updates using PATCH
-- JWT-based authentication (login + projected routes)
+- JWT-based authentication (login + protected routes)
 - Password hashing using bcrypt
 - Input validation using Pydantic
 - Repository pattern with SQLite persistence
@@ -29,6 +40,8 @@ The API models a simple task management system with Users, Projects, and Tasks, 
 - PyJWT
 - passlib (bcrypt)
 - pytest
+- Azure App Service (deployment)
+- GitHub Actions (CI/CD)
 
 ## Project Structure
 
@@ -70,7 +83,7 @@ Validation layer (schemas.py) defines request/response models.
 
 Repository layer (repository.py) encapsulates database operations.
 
-Auth layer (auth.py) handles password hasing and JWT creation/verification.
+Auth layer (auth.py) handles password hashing and JWT creation/verification.
 
 Database layer (database.py) manages SQLite connections and schema.
 
@@ -154,9 +167,6 @@ Authorization: Bearer <access_token>
 ## Running the App
 
 pip install -r requirements.txt
-
-Start the FastAPI development server:
-
 uvicorn app.main:app --reload
 
 Then open your browser:
@@ -167,6 +177,15 @@ http://127.0.0.1:8000/docs
 ## Running Tests
 
 pytest
+
+## Deployment
+
+This application is deployed to Azure App Service using GitHub Actions CI/CD.
+
+Deployment highlights:
+- Automated deploys on push to `main`
+- Environment variables managed via Azure App Settings
+- Production server using Gunicorn + Uvicorn workers
 
 ## Future Improvements
 
